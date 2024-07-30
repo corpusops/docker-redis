@@ -39,6 +39,12 @@
 6.2-alpine
 6.2-bullseye
 6.2-buster
+7
+7-alpine
+7-bullseye
+7.0
+7.0-alpine
+7.0-bullseye
 alpine
 bullseye
 buster

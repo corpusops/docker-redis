@@ -1,4 +1,4 @@
-FROM library/redis:6-buster
+FROM library/redis:7-bullseye
 ARG DO_UPDATE=y
 ARG NONINTERACTIVE=y
 ARG INSTALL_DEFAULT_LOCALE="fr_FR.UTF-8"
