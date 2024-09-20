@@ -65,20 +65,16 @@ jobs:
       fail-fast: false
       matrix:
         IMAGES:
-        - "library/redis/latest library/redis/alpine library/redis/7 library/redis/7-alpine library/redis/7-bookworm library/redis/7-bullseye"
+        - "library/redis/5 library/redis/5-alpine"
+        - "library/redis/6 library/redis/6-alpine"
+        - "library/redis/7 library/redis/7-alpine"
+        - "library/redis/alpine library/redis/latest"
         #- "corpusops/test/a corpusops/test/b corpusops/test/c"
         # all images that werent explicitly told to be built would be built in the next batches
         # we span them onto N jobs
-        - "zleftover:1/10"
-        - "zleftover:2/10"
-        - "zleftover:3/10"
-        - "zleftover:4/10"
-        - "zleftover:5/10"
-        - "zleftover:6/10"
-        - "zleftover:7/10"
-        - "zleftover:8/10"
-        - "zleftover:9/10"
-        - "zleftover:10/10"
+        - "zleftover:1/2"
+        - "zleftover:2/2"
+
 
 on:
   push:

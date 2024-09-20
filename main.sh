@@ -260,12 +260,15 @@ SKIPPED_TAGS="$SKIP_TF|$SKIP_MINOR_OS|$SKIP_NODE|$SKIP_DOCKER|$SKIP_MINIO|$SKIP_
 CURRENT_TS=$(date +%s)
 IMAGES_SKIP_NS="((mailhog|postgis|pgrouting(-bare)?|^library|dejavu|(minio/(minio|mc))))"
 
-SKIPPED_TAGS="$SKIP_MINOR|$SKIP_PRE|$SKIP_MISC|32bit|alpine3|nano|M01|stretch|jessie|wheezy|redis:([234])"
+REDIS_SKIPPED_TAGS="redis:(.*(32bit|alpha|beta|rc|windows|32bit|alpine3|nano|M01|stretch|jessie|wheezy|buster|bookworm|bullseye).*|[0-9]+\.[0-9]+\.?|[234])"
+SKIPPED_TAGS="$REDIS_SKIPPED_TAGS"
 
+# (see docker-elasticsearch for example on how to use)
+PROTECTED_VERSIONS=""
 default_images="
 library/redis
 "
-ONLY_ONE_MINOR="postgres|elasticsearch|nginx"
+ONLY_ONE_MINOR="postgres|nginx|opensearch|elasticsearch"
 PROTECTED_TAGS="corpusops/rsyslog"
 find_top_node_() {
     img=library/node
@@ -295,12 +298,14 @@ library/redis/stretch\
  library/redis/4-alpine
 "
 BATCHED_IMAGES="\
-library/redis/latest\
- library/redis/alpine\
- library/redis/7\
- library/redis/7-alpine\
- library/redis/7-bookworm\
- library/redis/7-bullseye::10
+library/redis/5\
+ library/redis/5-alpine::30 
+library/redis/6\
+ library/redis/6-alpine::30 
+library/redis/7\
+ library/redis/7-alpine::30 
+library/redis/alpine\
+ library/redis/latest::30
 "
 SKIP_REFRESH_ANCESTORS=${SKIP_REFRESH_ANCESTORS-}
 
@@ -490,6 +495,10 @@ gen_image() {
 is_skipped() {
     local ret=1 t="$@"
     if [[ -z $SKIPPED_TAGS ]];then return 1;fi
+    if [[ -n "${PROTECTED_VERSIONS}" ]] && ( echo "$t" | grep -E -q "$PROTECTED_VERSIONS" );then
+        debug "$t is protected, no skip"
+        return 1
+    fi
     if ( echo "$t" | grep -E -q "$SKIPPED_TAGS" );then
         ret=0
     fi
@@ -566,7 +575,7 @@ get_image_tags() {
     changed=
     if [[ "x${ONLY_ONE_MINOR}" != "x" ]] && ( echo $n | grep -E -q "$ONLY_ONE_MINOR" );then
         oomt=""
-        for ix in $(seq 0 30);do
+        for ix in $(seq 0 99);do
             if ! ( echo "$atags" | grep -E -q "^$ix\." );then continue;fi
             for j in $(seq 0 99);do
                 if ! ( echo "$atags" | grep -E -q "^$ix\.${j}\." );then continue;fi
@@ -589,10 +598,12 @@ get_image_tags() {
                     fi
                     if [[ -n "$selected" ]];then
                         for l in $(echo "$selected"|sed -e "$ d");do
-                            if [[ -z $oomt ]];then
-                                oomt="$l$"
-                            else
-                                oomt="$oomt|$l"
+                            if [[ -z "${PROTECTED_VERSIONS}" ]] || ! ( echo "$n:$l" | grep "${PROTECTED_VERSIONS}" );then
+                                if [[ -z $oomt ]];then
+                                    oomt="$l$"
+                                else
+                                    oomt="$oomt|$l"
+                                fi
                             fi
                         done
                     fi
@@ -605,7 +616,7 @@ get_image_tags() {
     fi
     if [[ -z ${SKIP_TAGS_REBUILD} ]];then
         rm -f "$t"
-        filter_tags "$atags" > $t
+        filter_tags "$atags" > "$t"
     fi
     set -e
     if [ -e "$t" ];then cat "$t";fi
