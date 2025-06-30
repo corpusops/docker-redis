@@ -260,7 +260,7 @@ SKIPPED_TAGS="$SKIP_TF|$SKIP_MINOR_OS|$SKIP_NODE|$SKIP_DOCKER|$SKIP_MINIO|$SKIP_
 CURRENT_TS=$(date +%s)
 IMAGES_SKIP_NS="((mailhog|postgis|pgrouting(-bare)?|^library|dejavu|(minio/(minio|mc))))"
 
-SKIPPED_TAGS="$SKIP_MINOR|$SKIP_PRE|$SKIP_MISC|32bit|alpine3|nano|M01"
+SKIPPED_TAGS="$SKIP_MINOR|$SKIP_PRE|$SKIP_MISC|32bit|alpine3|nano|M01|stretch|jessie|wheezy|redis:([234])"
 
 default_images="
 library/redis
@@ -286,16 +286,21 @@ find_top_node() { (set +e && find_top_node_ && set -e;); }
 NODE_TOP="$(echo $(find_top_node))"
 MAILU_VERSiON=1.7
 
-BATCHED_IMAGES="\
+UNSUPPORTED_BATCHED_IMAGES="
 library/redis/stretch\
- library/redis/latest\
  library/redis/5-stretch\
  library/redis/5\
  library/redis/4-stretch\
  library/redis/4\
+ library/redis/4-alpine
+"
+BATCHED_IMAGES="\
+library/redis/latest\
  library/redis/alpine\
- library/redis/5-alpine\
- library/redis/4-alpine::10
+ library/redis/7\
+ library/redis/7-alpine\
+ library/redis/7-bookworm\
+ library/redis/7-bullseye::10
 "
 SKIP_REFRESH_ANCESTORS=${SKIP_REFRESH_ANCESTORS-}
 
